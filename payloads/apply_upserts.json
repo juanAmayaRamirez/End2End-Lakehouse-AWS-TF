@@ -1,0 +1,8 @@
+{
+  "queries": [
+      "UPDATE aws_certifications.certifications_awarded SET awarded_date = '2024-12-01' WHERE user_id = 1 AND certification_id = 1;",
+      "UPDATE aws_certifications.certifications_awarded SET certification_id = 5 WHERE user_id = 2 AND certification_id = 2;",
+      "DELETE FROM aws_certifications.certifications_awarded WHERE user_id = 3 AND certification_id = 3;",
+      "SELECT u.name, u.email, u.country, c.certification_name, c.level, c.category, ca.awarded_date FROM aws_certifications.certifications_awarded ca JOIN aws_certifications.users u ON ca.user_id = u.user_id JOIN aws_certifications.certifications c ON ca.certification_id = c.certification_id ORDER BY ca.awarded_date DESC;"    
+    ]
+}

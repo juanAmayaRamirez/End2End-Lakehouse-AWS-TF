@@ -1,0 +1,5 @@
+{
+    "queries": [
+        "show global variables like \"log_bin\";"
+    ]
+}

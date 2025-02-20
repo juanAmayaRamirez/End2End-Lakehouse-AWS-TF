@@ -1,8 +1,9 @@
 terraform {
-  backend "s3" {
-    encrypt = true
-    bucket = var.backend_bucket
-    key    = "project-name/terraform.tfstate"
-    region = var.aws_region
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 5.87.0"
+    }
   }
+  required_version = "~> 1.5.6"
 }
