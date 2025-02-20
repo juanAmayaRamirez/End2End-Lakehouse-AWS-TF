@@ -5,7 +5,9 @@ locals {
   vpc_cidr = "10.0.0.0/16"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 }
-# S3 Buckets
+###########
+# STORAGE #
+###########
 resource "aws_s3_bucket" "bronce" {
   bucket = "my-bronce-bucket-${data.aws_caller_identity.current.account_id}"
   force_destroy = true
@@ -18,6 +20,20 @@ resource "aws_s3_bucket" "gold" {
   bucket = "my-gold-bucket-${data.aws_caller_identity.current.account_id}"
   force_destroy = true
 }
+resource "aws_s3_bucket" "dependencies" {
+  bucket = "my-dependencies-bucket-${data.aws_caller_identity.current.account_id}"
+  force_destroy = true
+}
+
+resource "aws_s3_object" "dependencies" {
+  for_each    = fileset("./glueAssets/", "**")
+  bucket      = aws_s3_bucket.dependencies.id
+  key         = each.value
+  source      = "./glueAssets/${each.value}"
+  source_hash = filemd5("./glueAssets/${each.value}")
+}
+
+
 ###########
 # NETWORK #
 ###########
@@ -220,6 +236,7 @@ resource "aws_iam_role" "dms_role" {
   name = "DMS-S3-Access-Role"
 
   assume_role_policy = jsonencode({
+    Version   = "2008-10-17"
     Statement = [{
       Action = "sts:AssumeRole",
       Effect = "Allow",
@@ -234,6 +251,47 @@ resource "aws_iam_role_policy_attachment" "dms_attach" {
   role       = aws_iam_role.dms_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
 }
+
+##########
+#  Glue  #
+##########
+
+#resource "aws_glue_catalog_database" "default_db" {
+#  name = "default"
+#  # depends_on = [
+#  #   aws_lakeformation_data_lake_settings.access
+#  # ]
+#}
+
+resource "aws_glue_catalog_database" "lakehouse_db" {
+  name = "lakehouse_db"
+  # depends_on = [
+  #   aws_lakeformation_data_lake_settings.access
+  # ]
+}
+
+resource "aws_iam_role" "glue_role" {
+  name = "accesoglue-iam-rol"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "glue.amazonaws.com"
+        }
+      },
+    ]
+  })
+  managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole", "arn:aws:iam::aws:policy/AmazonS3FullAccess", "arn:aws:iam::aws:policy/SecretsManagerReadWrite"]
+}
+
+
+##########
+# lakeformation #
+#################
 
 ##########
 # lambda #

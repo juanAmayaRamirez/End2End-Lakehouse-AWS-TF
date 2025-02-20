@@ -18,3 +18,7 @@ variable "env_name" {
   description = "The name of the workspace to use for this deployment."
   default     = "dev"
 }
+# variable "administrato_user_arn" {
+#   description = "arn del usuario administrador"
+#   type        = string
+# }
