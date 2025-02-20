@@ -14,6 +14,7 @@ This repository provides an educational example of how to build an **end-to-end 
 > ⚠ **Note:** This repository is **not production-ready** and should be used for **educational purposes** only.
 
 ## Architecture
+![Architecture](images/architecture.jpg)
 ```
  +------------------------+
  |      Source DB         |
