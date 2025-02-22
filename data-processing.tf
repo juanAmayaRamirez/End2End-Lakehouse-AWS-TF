@@ -15,6 +15,80 @@ resource "aws_iam_role" "glue_role" {
   })
   managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole", "arn:aws:iam::aws:policy/AmazonS3FullAccess", "arn:aws:iam::aws:policy/SecretsManagerReadWrite"]
 }
+
+# Hudi step functions pipeline
+resource "aws_iam_role" "sfn_role" {
+  name = "lakehouse-sfn-pipeline-iam-rol"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "states.amazonaws.com"
+        }
+      },
+    ]
+  })
+  managed_policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
+}
+data "template_file" "state_machine_definition_hudi" {
+  template = file("./state-machines/pipeline.json")
+  vars = {
+    FLGlueJobName  = "FLGlueJobName"
+    CDCGlueJobName = "CDCGlueJobName"
+    SNSTopicArn    = "SNSTopicArn"
+  }
+}
+resource "aws_sfn_state_machine" "hudi_fl_cdc_pipeline" {
+  name     = "hudi-fl-cdc-pipeline"
+  role_arn = aws_iam_role.sfn_role.arn
+
+  definition = data.template_file.state_machine_definition_hudi.rendered
+}
+
+# Event Bridge Schedule for Hudi pipeline
+resource "aws_iam_role" "bridge_role" {
+  name = "eventbridge-scheduler-iam-rol"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "scheduler.amazonaws.com"
+        }
+      },
+    ]
+  })
+  managed_policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
+}
+resource "aws_scheduler_schedule" "hudi_fl_cdc_pipeline" {
+  name       = "hudi-fl-cdc-pipeline"
+  group_name = "default"
+
+  flexible_time_window {
+    mode = "ON"
+  }
+  state               = "DISABLED"
+  schedule_expression = "cron(0 * ? * * *)" # every hour
+#   schedule_expression_timezone = "America/Bogota"
+  
+
+  target {
+    arn      = aws_sfn_state_machine.hudi_fl_cdc_pipeline.arn
+    role_arn = aws_iam_role.bridge_role.arn
+
+    input = jsonencode({
+      Commet = "Start Pipeline"
+    })
+  }
+}
+
 # Hudi FL and CDC glue jobs
 resource "aws_glue_job" "hudi_full_load_job" {
   name              = "hudi-full-load-job"

@@ -6,7 +6,7 @@ locals {
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 }
 
-# this lambda is used to create sample data in the RDS database and setup necessary bninary logging retention
+# this lambda is used to create sample data in the RDS database and setup necessary binary logging retention
 module "lambda_function_in_vpc" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "7.20.1"

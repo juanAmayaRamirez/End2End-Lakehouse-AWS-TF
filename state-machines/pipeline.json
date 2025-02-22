@@ -1,0 +1,60 @@
+{
+    "Comment": "Step Functions state machine to trigger Glue jobs sequentially and notify on failure",
+    "StartAt": "StartFLGlueJob",
+    "States": {
+        "StartFLGlueJob": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::glue:startJobRun.sync",
+            "Parameters": {
+                "JobName": "${FLGlueJobName}"
+            },
+            "Next": "StartCDCGlueJob",
+            "Catch": [
+                {
+                    "ErrorEquals": ["States.ALL"],
+                    "ResultPath": "$.error",
+                    "Next": "NotifyFailure"
+                }
+            ]
+        },
+        "StartCDCGlueJob": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::glue:startJobRun.sync",
+            "Parameters": {
+                "JobName": "${CDCGlueJobName}"
+            },
+            "Next": "StartGoldGlueJob",
+            "Catch": [
+                {
+                    "ErrorEquals": ["States.ALL"],
+                    "ResultPath": "$.error",
+                    "Next": "NotifyFailure"
+                }
+            ]
+        },
+        "StartGoldGlueJob": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::glue:startJobRun.sync",
+            "Parameters": {
+                "JobName": "${GoldGlueJobName}"
+            },
+            "End": true,
+            "Catch": [
+                {
+                    "ErrorEquals": ["States.ALL"],
+                    "ResultPath": "$.error",
+                    "Next": "NotifyFailure"
+                }
+            ]
+        },
+        "NotifyFailure": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sns:publish",
+            "Parameters": {
+                "TopicArn": "${SNSTopicArn}",
+                "Message": "Glue job failed"
+            },
+            "End": true
+        }
+    }
+}
