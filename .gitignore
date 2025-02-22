@@ -33,3 +33,7 @@ terraform.rc
 
 # Ignore all .zip files
 *.zip
+
+.terraform.lock.hcl
+
+builds/*
