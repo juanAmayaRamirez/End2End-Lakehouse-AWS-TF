@@ -1,0 +1,29 @@
+{
+    "Version": "2008-10-17",
+    "Id": "__default_policy_ID",
+    "Statement": [
+      {
+        "Sid": "__default_statement_ID",
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": "*"
+        },
+        "Action": [
+          "sns:GetTopicAttributes",
+          "sns:SetTopicAttributes",
+          "sns:AddPermission",
+          "sns:RemovePermission",
+          "sns:DeleteTopic",
+          "sns:Subscribe",
+          "sns:ListSubscriptionsByTopic",
+          "sns:Publish"
+        ],
+        "Resource": "arn:aws:sns:us-east-1:${aws_account_id}:*",
+        "Condition": {
+          "StringEquals": {
+            "AWS:SourceOwner": "${aws_account_id}"
+          }
+        }
+      }
+    ]
+  }

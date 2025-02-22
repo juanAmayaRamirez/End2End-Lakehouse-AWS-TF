@@ -22,3 +22,10 @@ variable "env_name" {
 #   description = "arn del usuario administrador"
 #   type        = string
 # }
+# AWS Region
+variable "monitoring_emails" {
+  type        = list(string)
+  nullable    = false
+  description = "emails for pipelines monitoring"
+  default     = []
+}
