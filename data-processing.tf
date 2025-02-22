@@ -15,30 +15,81 @@ resource "aws_iam_role" "glue_role" {
   })
   managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole", "arn:aws:iam::aws:policy/AmazonS3FullAccess", "arn:aws:iam::aws:policy/SecretsManagerReadWrite"]
 }
-
 # Hudi FL and CDC glue jobs
 resource "aws_glue_job" "hudi_full_load_job" {
-  name     = "hudi-full-load-job"
-  role_arn = aws_iam_role.glue_role.arn
+  name              = "hudi-full-load-job"
+  role_arn          = aws_iam_role.glue_role.arn
+  glue_version      = "5.0"
+  worker_type       = "G.1X"
+  number_of_workers = "2"
+  max_retries       = 0
+  timeout           = 15
+  execution_class   = "FLEX"
 
   command {
     script_location = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/hudi/glueScripts/full_load.py"
   }
+
+  default_arguments = {
+    "--enable-continuous-cloudwatch-log"  = "true"
+    "--enable-metrics"                    = "true"
+    "--enable-glue-datacatalog"           = "true"
+    "--enable-job-insights"               = "true"
+    "--datalake-formats"                  = "hudi"
+    "--conf"                              = "spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.sql.hive.convertMetastoreParquet=false"
+    "--TempDir"                           = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/sparkHistoryLogs/"
+    "--extra-py-files"                    = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/hudi/libraries/hudi_common_library.py"
+    "--job-bookmark-option"               = "job-bookmark-disable"
+  }
 }
 resource "aws_glue_job" "hudi_cdc_job" {
-  name     = "hudi-cdc-job"
-  role_arn = aws_iam_role.glue_role.arn
+  name              = "hudi-cdc-job"
+  role_arn          = aws_iam_role.glue_role.arn
+  glue_version      = "5.0"
+  worker_type       = "G.1X"
+  number_of_workers = "2"
+  max_retries       = 0
+  timeout           = 15
+  execution_class   = "FLEX"
 
   command {
     script_location = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/hudi/glueScripts/cdc.py"
   }
+  default_arguments = {
+    "--enable-continuous-cloudwatch-log"  = "true"
+    "--enable-metrics"                    = "true"
+    "--enable-glue-datacatalog"           = "true"
+    "--enable-job-insights"               = "true"
+    "--datalake-formats"                  = "hudi"
+    "--conf"                              = "spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.sql.hive.convertMetastoreParquet=false"
+    "--TempDir"                           = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/sparkHistoryLogs/"
+    "--extra-py-files"                    = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/hudi/libraries/hudi_common_library.py"
+    "--job-bookmark-option"               = "job-bookmark-enable"
+  }
 }
 resource "aws_glue_job" "hudi_gold_elt_job" {
-  name     = "hudi-gold-etl-job"
-  role_arn = aws_iam_role.glue_role.arn
+  name              = "hudi-gold-etl-job"
+  role_arn          = aws_iam_role.glue_role.arn
+  glue_version      = "5.0"
+  worker_type       = "G.1X"
+  number_of_workers = "2"
+  max_retries       = 0
+  timeout           = 15
+  execution_class   = "FLEX"
 
   command {
     script_location = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/hudi/glueScripts/gold_elt_job.py"
+  }
+  default_arguments = {
+    "--enable-continuous-cloudwatch-log"  = "true"
+    "--enable-metrics"                    = "true"
+    "--enable-glue-datacatalog"           = "true"
+    "--enable-job-insights"               = "true"
+    "--datalake-formats"                  = "hudi"
+    "--conf"                              = "spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.sql.hive.convertMetastoreParquet=false"
+    "--TempDir"                           = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/sparkHistoryLogs/"
+    "--extra-py-files"                    = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/hudi/libraries/hudi_common_library.py"
+    "--job-bookmark-option"               = "job-bookmark-disable"
   }
 }
 # # Iceberg FL and CDC glue jobs
