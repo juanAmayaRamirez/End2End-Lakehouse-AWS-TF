@@ -37,9 +37,10 @@ resource "aws_iam_role" "sfn_role" {
 data "template_file" "state_machine_definition_hudi" {
   template = file("./state-machines/pipeline.json")
   vars = {
-    FLGlueJobName  = "FLGlueJobName"
-    CDCGlueJobName = "CDCGlueJobName"
-    SNSTopicArn    = "SNSTopicArn"
+    FLGlueJobName   = aws_glue_job.hudi_full_load_job.name
+    CDCGlueJobName  = aws_glue_job.hudi_cdc_job.name
+    GoldGlueJobName = aws_glue_job.hudi_gold_elt_job.name
+    SNSTopicArn     = aws_sns_topic.monitoring_notifications.arn
   }
 }
 resource "aws_sfn_state_machine" "hudi_fl_cdc_pipeline" {
