@@ -43,6 +43,12 @@ def upsert_hudi_dataframe(
         hudi_custom_options (Optional[Dict[str, str]]): Additional Hudi options.
         method (str): Write method (overwritten by ingestion_type if specified).
     """
+    if table_type not in ("COPY_ON_WRITE", "MERGE_ON_READ"):
+        raise ValueError(f"Invalid table type: {table_type}. Must be COPY_ON_WRITE or MERGE_ON_READ")
+    
+    if ingestion_type and ingestion_type not in ("cdc", "fl"):
+        raise ValueError(f"Invalid ingestion type: {ingestion_type}. Must be 'cdc' or 'fl'")
+    
     if not spark_df.columns:
         print(f"No records to write into {glue_database}.{table_name}")
         return
