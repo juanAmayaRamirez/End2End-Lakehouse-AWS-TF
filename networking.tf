@@ -36,23 +36,39 @@ module "security_group" {
   description = "Complete MySQL example security group"
   vpc_id      = module.vpc.vpc_id
 
-  # ingress
+  # Ingress rules (Restrict MySQL and DMS)
   ingress_with_cidr_blocks = [
     {
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      description = "MySQL access from within VPC"
-      cidr_blocks = "0.0.0.0/0"
+      from_port   = 3306
+      to_port     = 3306
+      protocol    = "tcp"
+      description = "Allow MySQL access from within VPC"
+      cidr_blocks = local.vpc_cidr
     },
+    {
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      description = "Allow HTTPS for DMS"
+      cidr_blocks = local.vpc_cidr
+    }
   ]
+
+  # Egress rules (Restrict outbound traffic)
   egress_with_cidr_blocks = [
     {
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      description = "MySQL access from within VPC"
-      cidr_blocks = "0.0.0.0/0"
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      description = "Allow outbound HTTPS (AWS services, API calls)"
+      cidr_blocks = "0.0.0.0/0"  # If you need to access AWS services
     },
+    {
+      from_port   = 3306
+      to_port     = 3306
+      protocol    = "tcp"
+      description = "Allow MySQL outbound to internal services"
+      cidr_blocks = local.vpc_cidr
+    }
   ]
 }
