@@ -37,10 +37,11 @@ resource "aws_iam_role" "sfn_role" {
 data "template_file" "state_machine_definition_hudi" {
   template = file("./state-machines/pipeline.json")
   vars = {
-    FLGlueJobName   = aws_glue_job.hudi_full_load_job.name
-    CDCGlueJobName  = aws_glue_job.hudi_cdc_job.name
-    GoldGlueJobName = aws_glue_job.hudi_gold_elt_job.name
-    SNSTopicArn     = aws_sns_topic.monitoring_notifications.arn
+    replication_task_arn = module.database_migration_service.replication_tasks["cdc_ex"].replication_task_arn
+    fl_job_name          = aws_glue_job.hudi_full_load_job.name
+    cdc_job_name         = aws_glue_job.hudi_cdc_job.name
+    gold_job_name        = aws_glue_job.hudi_gold_elt_job.name
+    sns_monitoring       = aws_sns_topic.monitoring_notifications.arn
   }
 }
 resource "aws_sfn_state_machine" "hudi_fl_cdc_pipeline" {
@@ -73,7 +74,7 @@ resource "aws_scheduler_schedule" "hudi_fl_cdc_pipeline" {
   group_name = "default"
 
   flexible_time_window {
-    mode = "ON"
+    mode = "OFF"
   }
   state               = "DISABLED"
   schedule_expression = "cron(0 * ? * * *)" # every hour

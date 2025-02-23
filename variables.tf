@@ -24,7 +24,7 @@ variable "env_name" {
 # }
 # AWS Region
 variable "monitoring_emails" {
-  type        = list(string)
+  type        = set(string)
   nullable    = false
   description = "emails for pipelines monitoring"
   default     = []

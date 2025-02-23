@@ -1,60 +1,167 @@
 {
     "Comment": "Step Functions state machine to trigger Glue jobs sequentially and notify on failure",
-    "StartAt": "StartFLGlueJob",
+    "QueryLanguage": "JSONata",
+    "StartAt": "initial_describe_dms_task",
     "States": {
-        "StartFLGlueJob": {
+        "initial_describe_dms_task": {
+            "Type": "Task",
+            "Arguments": {
+                "Filters": [
+                    {
+                        "Name": "replication-task-arn",
+                        "Values": [
+                            "${replication_task_arn}"
+                        ]
+                    }
+                ]
+            },
+            "Resource": "arn:aws:states:::aws-sdk:databasemigration:describeReplicationTasks",
+            "Next": "initial_status_check_replication_task"
+        },
+        "initial_status_check_replication_task": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Condition": "{% $states.input.ReplicationTasks[0].Status = 'created' or $states.input.ReplicationTasks[0].Status = 'ready' or $states.input.ReplicationTasks[0].Status = 'stopped' or $states.input.ReplicationTasks[0].Status = 'failed'  %}",
+                    "Next": "start_replication_task"
+                },
+                {
+                    "Condition": "{% $states.input.ReplicationTasks[0].Status = 'running' and $states.input.ReplicationTasks[0].ReplicationTaskStats.FullLoadProgressPercent = 100 %}",
+                    "Next": "wait_replication_task"
+                }
+            ],
+            "Default": "start_cdc_job_glue"
+        },
+        "start_replication_task": {
+            "Type": "Task",
+            "Arguments": {
+                "ReplicationTaskArn": "${replication_task_arn}",
+                "StartReplicationTaskType": "reload-target"
+            },
+            "Resource": "arn:aws:states:::aws-sdk:databasemigration:startReplicationTask",
+            "Next": "wait_replication_task"
+        },
+        "wait_replication_task": {
+            "Type": "Wait",
+            "Seconds": 120,
+            "Next": "describe_replication_task"
+        },
+        "describe_replication_task": {
+            "Type": "Task",
+            "Arguments": {
+                "Filters": [
+                    {
+                        "Name": "replication-task-arn",
+                        "Values": [
+                            "${replication_task_arn}"
+                        ]
+                    }
+                ]
+            },
+            "Resource": "arn:aws:states:::aws-sdk:databasemigration:describeReplicationTasks",
+            "Next": "status_check_replication_task"
+        },
+        "status_check_replication_task": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Condition": "{% $states.input.ReplicationTasks[0].Status = 'failed' %}",
+                    "Next": "sns_fail_rt_fl"
+                },
+                {
+                    "Condition": "{% $states.input.ReplicationTasks[0].Status = 'running' and $states.input.ReplicationTasks[0].ReplicationTaskStats.FullLoadProgressPercent = 100 %}",
+                    "Next": "start_fl_job_glue"
+                }
+            ],
+            "Default": "wait_replication_task"
+        },
+        "sns_fail_rt_fl": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sns:publish",
+            "Arguments": {
+                "TopicArn": "${sns_monitoring}",
+                "Subject": "AWS  FL-CDC Datalake Notification",
+                "Message": "{% ' Replication Task Full Load Fail\\n\\nReason:\\n' & $states.input %}"
+            },
+            "Next": "Fail"
+        },
+        "start_fl_job_glue": {
             "Type": "Task",
             "Resource": "arn:aws:states:::glue:startJobRun.sync",
-            "Parameters": {
-                "JobName": "${FLGlueJobName}"
+            "Arguments": {
+                "JobName": "${fl_job_name}"
             },
-            "Next": "StartCDCGlueJob",
+            "Next": "start_gold_glue_job",
             "Catch": [
                 {
-                    "ErrorEquals": ["States.ALL"],
-                    "ResultPath": "$.error",
-                    "Next": "NotifyFailure"
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "Next": "sns_fail_fl_glue"
                 }
             ]
         },
-        "StartCDCGlueJob": {
+        "start_gold_glue_job": {
             "Type": "Task",
             "Resource": "arn:aws:states:::glue:startJobRun.sync",
-            "Parameters": {
-                "JobName": "${CDCGlueJobName}"
-            },
-            "Next": "StartGoldGlueJob",
-            "Catch": [
-                {
-                    "ErrorEquals": ["States.ALL"],
-                    "ResultPath": "$.error",
-                    "Next": "NotifyFailure"
-                }
-            ]
-        },
-        "StartGoldGlueJob": {
-            "Type": "Task",
-            "Resource": "arn:aws:states:::glue:startJobRun.sync",
-            "Parameters": {
-                "JobName": "${GoldGlueJobName}"
+            "Arguments": {
+                "JobName": "${gold_job_name}"
             },
             "End": true,
             "Catch": [
                 {
-                    "ErrorEquals": ["States.ALL"],
-                    "ResultPath": "$.error",
-                    "Next": "NotifyFailure"
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "Next": "sns_fail_gold_glue"
                 }
             ]
         },
-        "NotifyFailure": {
+        "sns_fail_fl_glue": {
             "Type": "Task",
             "Resource": "arn:aws:states:::sns:publish",
-            "Parameters": {
-                "TopicArn": "${SNSTopicArn}",
+            "Arguments": {
+                "TopicArn": "${sns_monitoring}",
                 "Message": "Glue job failed"
             },
-            "End": true
+            "Next": "Fail"
+        },
+        "sns_fail_cdc_glue": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sns:publish",
+            "Arguments": {
+                "TopicArn": "${sns_monitoring}",
+                "Message": "Glue job failed"
+            },
+            "Next": "Fail"
+        },
+        "sns_fail_gold_glue": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sns:publish",
+            "Arguments": {
+                "TopicArn": "${sns_monitoring}",
+                "Message": "Glue job failed"
+            },
+            "Next": "Fail"
+        },
+        "Fail": {
+            "Type": "Fail"
+        },
+        "start_cdc_job_glue": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::glue:startJobRun.sync",
+            "Arguments": {
+                "JobName": "${cdc_job_name}"
+            },
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "Next": "sns_fail_cdc_glue"
+                }
+            ],
+            "Next": "start_gold_glue_job"
         }
     }
 }

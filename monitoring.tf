@@ -32,7 +32,7 @@ EOF
 }
 
 resource "aws_sns_topic_subscription" "sns_topic_subscription_sqs" {
-  for_each  = var.monitoring_emails ? 1 : 0
+  for_each  = var.monitoring_emails
   topic_arn = aws_sns_topic.monitoring_notifications.arn
   endpoint  = each.value
   protocol  = "email"
