@@ -1,7 +1,7 @@
 data "template_file" "monitoring_notifications_policy" {
   template = file("./policies/sns_monitoring_policy.json")
   vars = {
-    aws_account_id  = data.aws_caller_identity.current.account_id
+    aws_account_id = data.aws_caller_identity.current.account_id
   }
 }
 resource "aws_sns_topic" "monitoring_notifications" {

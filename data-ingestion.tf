@@ -10,34 +10,23 @@ module "db" {
   major_engine_version = "8.0"      # DB option group
   instance_class       = "db.t3.micro"
 
-  allocated_storage     = 20
-    #   max_allocated_storage = 100
-  
+  allocated_storage = 20
+
   manage_master_user_password = false
-  db_name  = "completeMysql"
-  username = "complete_mysql"
-  password = "Password1234."
-  port     = 3306
+  db_name                     = "completeMysql"
+  username                    = "complete_mysql"
+  password                    = "Password1234."
+  port                        = 3306
 
   multi_az               = false
   db_subnet_group_name   = module.vpc.database_subnet_group
   vpc_security_group_ids = [module.security_group.security_group_id]
 
-  maintenance_window              = "Mon:00:00-Mon:03:00"
-  backup_window                   = "03:00-06:00"
-  backup_retention_period         = 7
-  apply_immediately               = true
-  delete_automated_backups        = true
-    #   enabled_cloudwatch_logs_exports = ["general"]
-    #   create_cloudwatch_log_group     = false
-
-    #   skip_final_snapshot = false
-    #   deletion_protection = false
-
-    #   performance_insights_enabled          = false
-    #   performance_insights_retention_period = 7
-    #   create_monitoring_role                = false
-    #   monitoring_interval                   = 60
+  maintenance_window       = "Mon:00:00-Mon:03:00"
+  backup_window            = "03:00-06:00"
+  backup_retention_period  = 7
+  apply_immediately        = true
+  delete_automated_backups = true
 
   parameters = [
     {
@@ -49,16 +38,16 @@ module "db" {
       value = "utf8mb4"
     },
     {
-        name  = "binlog_format"
-        value = "ROW"
+      name  = "binlog_format"
+      value = "ROW"
     },
     {
-        name  = "binlog_row_image"
-        value = "Full"
+      name  = "binlog_row_image"
+      value = "Full"
     },
     {
-        name  = "log_bin_trust_function_creators"
-        value = "1"
+      name  = "log_bin_trust_function_creators"
+      value = "1"
     }
   ]
 
@@ -74,11 +63,7 @@ module "database_migration_service" {
   repl_subnet_group_subnet_ids  = module.vpc.private_subnets
 
   # Instance
-    #   repl_instance_allocated_storage            = 64
-    #   repl_instance_auto_minor_version_upgrade   = true
-    #   repl_instance_allow_major_version_upgrade  = true
   repl_instance_apply_immediately            = true
-    #   repl_instance_engine_version               = "3.5.2"
   repl_instance_multi_az                     = false
   repl_instance_preferred_maintenance_window = "sun:10:30-sun:14:30"
   repl_instance_publicly_accessible          = true
@@ -88,31 +73,31 @@ module "database_migration_service" {
 
   endpoints = {
     source = {
-      endpoint_id                 = "source-mysql-rds"
-      endpoint_type               = "source"
-      database_name               = module.db.db_instance_name
-      server_name                 = module.db.db_instance_address
-      engine_name                 = module.db.db_instance_engine
-      port                        = module.db.db_instance_port
-      username                    = module.db.db_instance_username
-      password                    = "Password1234."
-      tags                        = { EndpointType = "source" }
+      endpoint_id   = "source-mysql-rds"
+      endpoint_type = "source"
+      database_name = module.db.db_instance_name
+      server_name   = module.db.db_instance_address
+      engine_name   = module.db.db_instance_engine
+      port          = module.db.db_instance_port
+      username      = module.db.db_instance_username
+      password      = "Password1234."
+      tags          = { EndpointType = "source" }
     }
   }
   s3_endpoints = {
     destination = {
-        endpoint_id              = "target-s3-bronce"
-        endpoint_type            = "target"
-        bucket_name              = aws_s3_bucket.bronce.id
-        bucket_folder            = "rds"
-        data_format              = "parquet"
-        date_partition_enabled   = false
-        compression_type         = "NONE"
-        service_access_role_arn  = aws_iam_role.dms_role.arn
-        timestamp_column_name    = "ts"
-        include_op_for_full_load = true
-        cdc_min_file_size        = 32000
-        cdc_max_batch_interval   = 30
+      endpoint_id              = "target-s3-bronce"
+      endpoint_type            = "target"
+      bucket_name              = aws_s3_bucket.bronce.id
+      bucket_folder            = "rds"
+      data_format              = "parquet"
+      date_partition_enabled   = false
+      compression_type         = "NONE"
+      service_access_role_arn  = aws_iam_role.dms_role.arn
+      timestamp_column_name    = "ts"
+      include_op_for_full_load = true
+      cdc_min_file_size        = 32000
+      cdc_max_batch_interval   = 30
     }
   }
   replication_tasks = {
@@ -133,7 +118,7 @@ resource "aws_iam_role" "dms_role" {
   name = "DMS-S3-Access-Role"
 
   assume_role_policy = jsonencode({
-    Version   = "2008-10-17"
+    Version = "2008-10-17"
     Statement = [{
       Action = "sts:AssumeRole",
       Effect = "Allow",

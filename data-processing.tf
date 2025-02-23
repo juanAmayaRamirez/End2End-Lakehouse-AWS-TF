@@ -78,8 +78,8 @@ resource "aws_scheduler_schedule" "hudi_fl_cdc_pipeline" {
   }
   state               = "DISABLED"
   schedule_expression = "cron(0 * ? * * *)" # every hour
-#   schedule_expression_timezone = "America/Bogota"
-  
+  #   schedule_expression_timezone = "America/Bogota"
+
 
   target {
     arn      = aws_sfn_state_machine.hudi_fl_cdc_pipeline.arn
@@ -107,15 +107,15 @@ resource "aws_glue_job" "hudi_full_load_job" {
   }
 
   default_arguments = {
-    "--enable-continuous-cloudwatch-log"  = "true"
-    "--enable-metrics"                    = "true"
-    "--enable-glue-datacatalog"           = "true"
-    "--enable-job-insights"               = "true"
-    "--datalake-formats"                  = "hudi"
-    "--conf"                              = "spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.sql.hive.convertMetastoreParquet=false"
-    "--TempDir"                           = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/sparkHistoryLogs/"
-    "--extra-py-files"                    = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/hudi/libraries/hudi_common_library.py"
-    "--job-bookmark-option"               = "job-bookmark-disable"
+    "--enable-continuous-cloudwatch-log" = "true"
+    "--enable-metrics"                   = "true"
+    "--enable-glue-datacatalog"          = "true"
+    "--enable-job-insights"              = "true"
+    "--datalake-formats"                 = "hudi"
+    "--conf"                             = "spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.sql.hive.convertMetastoreParquet=false"
+    "--TempDir"                          = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/sparkHistoryLogs/"
+    "--extra-py-files"                   = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/hudi/libraries/hudi_common_library.py"
+    "--job-bookmark-option"              = "job-bookmark-disable"
   }
 }
 resource "aws_glue_job" "hudi_cdc_job" {
@@ -132,15 +132,15 @@ resource "aws_glue_job" "hudi_cdc_job" {
     script_location = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/hudi/glueScripts/cdc.py"
   }
   default_arguments = {
-    "--enable-continuous-cloudwatch-log"  = "true"
-    "--enable-metrics"                    = "true"
-    "--enable-glue-datacatalog"           = "true"
-    "--enable-job-insights"               = "true"
-    "--datalake-formats"                  = "hudi"
-    "--conf"                              = "spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.sql.hive.convertMetastoreParquet=false"
-    "--TempDir"                           = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/sparkHistoryLogs/"
-    "--extra-py-files"                    = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/hudi/libraries/hudi_common_library.py"
-    "--job-bookmark-option"               = "job-bookmark-enable"
+    "--enable-continuous-cloudwatch-log" = "true"
+    "--enable-metrics"                   = "true"
+    "--enable-glue-datacatalog"          = "true"
+    "--enable-job-insights"              = "true"
+    "--datalake-formats"                 = "hudi"
+    "--conf"                             = "spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.sql.hive.convertMetastoreParquet=false"
+    "--TempDir"                          = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/sparkHistoryLogs/"
+    "--extra-py-files"                   = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/hudi/libraries/hudi_common_library.py"
+    "--job-bookmark-option"              = "job-bookmark-enable"
   }
 }
 resource "aws_glue_job" "hudi_gold_elt_job" {
@@ -157,15 +157,15 @@ resource "aws_glue_job" "hudi_gold_elt_job" {
     script_location = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/hudi/glueScripts/gold_etl_job.py"
   }
   default_arguments = {
-    "--enable-continuous-cloudwatch-log"  = "true"
-    "--enable-metrics"                    = "true"
-    "--enable-glue-datacatalog"           = "true"
-    "--enable-job-insights"               = "true"
-    "--datalake-formats"                  = "hudi"
-    "--conf"                              = "spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.sql.hive.convertMetastoreParquet=false"
-    "--TempDir"                           = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/sparkHistoryLogs/"
-    "--extra-py-files"                    = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/hudi/libraries/hudi_common_library.py"
-    "--job-bookmark-option"               = "job-bookmark-disable"
+    "--enable-continuous-cloudwatch-log" = "true"
+    "--enable-metrics"                   = "true"
+    "--enable-glue-datacatalog"          = "true"
+    "--enable-job-insights"              = "true"
+    "--datalake-formats"                 = "hudi"
+    "--conf"                             = "spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.sql.hive.convertMetastoreParquet=false"
+    "--TempDir"                          = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/sparkHistoryLogs/"
+    "--extra-py-files"                   = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/hudi/libraries/hudi_common_library.py"
+    "--job-bookmark-option"              = "job-bookmark-disable"
   }
 }
 # # Iceberg FL and CDC glue jobs

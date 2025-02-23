@@ -33,12 +33,12 @@ module "lambda_function_in_vpc" {
   EOT
 
   environment_variables = {
-    USERNAME = module.db.db_instance_username
-    PASSWORD = "Password1234."
-    RDS_HOST = module.db.db_instance_address
-    RDS_PORT = module.db.db_instance_port
+    USERNAME     = module.db.db_instance_username
+    PASSWORD     = "Password1234."
+    RDS_HOST     = module.db.db_instance_address
+    RDS_PORT     = module.db.db_instance_port
     RDS_DATABASE = module.db.db_instance_name
   }
-  vpc_subnet_ids                     = module.vpc.database_subnets
-  vpc_security_group_ids             = [module.security_group.security_group_id]
+  vpc_subnet_ids         = module.vpc.database_subnets
+  vpc_security_group_ids = [module.security_group.security_group_id]
 }
