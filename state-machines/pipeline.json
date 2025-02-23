@@ -27,7 +27,7 @@
                 },
                 {
                     "Condition": "{% $states.input.ReplicationTasks[0].Status = 'running' and $states.input.ReplicationTasks[0].ReplicationTaskStats.FullLoadProgressPercent = 100 %}",
-                    "Next": "wait_replication_task"
+                    "Next": "start_fl_job_glue"
                 }
             ],
             "Default": "describe_fl_job_glue"

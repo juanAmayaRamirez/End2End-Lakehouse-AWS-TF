@@ -154,7 +154,7 @@ resource "aws_glue_job" "hudi_gold_elt_job" {
   execution_class   = "FLEX"
 
   command {
-    script_location = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/hudi/glueScripts/gold_elt_job.py"
+    script_location = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/hudi/glueScripts/gold_etl_job.py"
   }
   default_arguments = {
     "--enable-continuous-cloudwatch-log"  = "true"
@@ -190,7 +190,7 @@ resource "aws_glue_job" "hudi_gold_elt_job" {
 #   role_arn = aws_iam_role.glue_role.arn
 
 #   command {
-#     script_location = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/iceberg/glueScripts/gold_elt_job.py"
+#     script_location = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/iceberg/glueScripts/gold_etl_job.py"
 #   }
 # }
 # # Delta FL and CDC glue jobs
@@ -215,6 +215,6 @@ resource "aws_glue_job" "hudi_gold_elt_job" {
 #   role_arn = aws_iam_role.glue_role.arn
 
 #   command {
-#     script_location = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/delta/glueScripts/gold_elt_job.py"
+#     script_location = "s3://${aws_s3_bucket.dependencies.id}/glueAssets/delta/glueScripts/gold_etl_job.py"
 #   }
 # }
