@@ -30,7 +30,7 @@
                     "Next": "wait_replication_task"
                 }
             ],
-            "Default": "start_cdc_job_glue"
+            "Default": "describe_fl_job_glue"
         },
         "start_replication_task": {
             "Type": "Task",
@@ -84,6 +84,24 @@
                 "Message": "{% ' Replication Task Full Load Fail\\n\\nReason:\\n' & $states.input %}"
             },
             "Next": "Fail"
+        },
+        "describe_fl_job_glue": {
+            "Type": "Task",
+            "Arguments": {
+                "JobName": "${fl_job_name}"
+            },
+            "Resource": "arn:aws:states:::aws-sdk:glue:getJobRuns",
+            "Next": "status_check_fl_job_glue"
+        },
+        "status_check_fl_job_glue": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                "Condition": "{% $exists($states.input.JobRuns[0].JobRunState) and $states.input.JobRuns[0].JobRunState = 'FAILED' %}",
+                "Next": "start_fl_job_glue"
+                }
+            ],
+            "Default": "start_cdc_job_glue"
         },
         "start_fl_job_glue": {
             "Type": "Task",

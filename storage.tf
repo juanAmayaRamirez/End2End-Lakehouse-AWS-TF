@@ -18,7 +18,7 @@ resource "aws_s3_bucket" "dependencies" {
 resource "aws_s3_object" "dependencies" {
   for_each    = fileset("./glueAssets/", "**")
   bucket      = aws_s3_bucket.dependencies.id
-  key         = each.value
+  key         = "glueAssets/${each.value}"
   source      = "./glueAssets/${each.value}"
   source_hash = filemd5("./glueAssets/${each.value}")
 }

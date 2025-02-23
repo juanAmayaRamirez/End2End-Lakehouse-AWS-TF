@@ -27,6 +27,7 @@ module "db" {
   backup_window                   = "03:00-06:00"
   backup_retention_period         = 7
   apply_immediately               = true
+  delete_automated_backups        = true
     #   enabled_cloudwatch_logs_exports = ["general"]
     #   create_cloudwatch_log_group     = false
 
