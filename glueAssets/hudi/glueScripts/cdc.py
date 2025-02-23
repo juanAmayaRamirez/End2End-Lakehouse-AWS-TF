@@ -75,7 +75,7 @@ for sourceSchemaName, sourceTableName in mapping_tables:
     df = dyf.toDF()
     df.printSchema()
     print("##########################")
-    gl2.upsert_hudi_dataframe_0_14_1(
+    gl2.upsert_hudi_dataframe(
         spark_df = df,
         glue_database = dbName,
         table_name = targetTableName.lower(),
