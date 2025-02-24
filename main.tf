@@ -42,3 +42,13 @@ module "lambda_function_in_vpc" {
   vpc_subnet_ids         = module.vpc.database_subnets
   vpc_security_group_ids = [module.security_group.security_group_id]
 }
+resource "aws_lambda_invocation" "initial_configuration" {
+  function_name = module.lambda_function_in_vpc.lambda_function_name
+
+  input = file("./payloads/initial_configuration.json")
+  depends_on = [ module.db ]
+}
+
+output "result_entry" {
+  value = jsondecode(aws_lambda_invocation.initial_configuration.result)
+}

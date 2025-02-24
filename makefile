@@ -12,17 +12,17 @@ validate:
 
 init:
 # Require S3BUCKET and WORKSPACE variables to be set
-ifndef S3BUCKET
-	$(error S3BUCKET is not set. Please specify an S3 bucket name, e.g., 'make init S3BUCKET=my-tf-state-bucket ENV=dev')
-endif
 ifndef ENV
-	$(error ENV is not set. Please specify a environment name, e.g., 'make init S3BUCKET=my-tf-state-bucket ENV=dev')
+	$(error ENV is not set. Please specify an environment name, e.g., 'make init ENV=dev')
 endif
-ifeq ($(filter $(ENV),$(ALLOWED_ENVS)),)
-	$(error ENV must be one of the following values: $(ALLOWED_ENVS))
+ifdef S3BUCKET
+	terraform init -reconfigure \
+		-backend-config="bucket=${S3BUCKET}" \
+		-backend-config="key=terraform-${ENV}/terraform.tfstate" \
+		-backend-config="region=us-east-1"
+else
+	terraform init
 endif
-	terraform init -reconfigure -backend-config="bucket=${S3BUCKET}" -backend-config="key=terraform-${ENV}/terraform.tfstate" -backend-config="region=us-east-1" 
-
 
 plan:
 ifndef ENV
