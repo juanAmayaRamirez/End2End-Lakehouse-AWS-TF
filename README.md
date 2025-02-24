@@ -1,4 +1,5 @@
 # Terraform Lakehouse Infrastructure as Code (IaC)
+[Full Medium article](https://medium.com/@juanfelipear97/building-a-lakehouse-architecture-on-aws-with-terraform-139c079ec385)
 
 ## Overview
 This repository provides an educational example of how to build an **end-to-end lakehouse architecture** using **Terraform**. The infrastructure includes:
