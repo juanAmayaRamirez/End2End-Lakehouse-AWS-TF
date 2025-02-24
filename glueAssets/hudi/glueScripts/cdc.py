@@ -80,7 +80,7 @@ for sourceSchemaName, sourceTableName in mapping_tables:
         glue_database = dbName,
         table_name = targetTableName.lower(),
         record_id = primary_key,
-        precomb_key = "ts",
+        precombine_key = "ts",
         target_path = targetS3TablePath,
         ingestion_type = "cdc",
         hudi_custom_options = {
